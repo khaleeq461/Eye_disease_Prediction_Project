@@ -1,0 +1,128 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log
+npm-error.log
+yarn-error.log
+.npm
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.venv
+.Python
+
+# ML Models (Large files - keep .pth files)
+# Note: .pth files are tracked as they are essential to the project
+# But large dataset files should not be tracked
+dataset/
+odir_fixed/
+*.zip
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.sublime-project
+.sublime-workspace
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints
+.jupyter
+# Exclude Jupyter notebooks from tracking (can be large)
+fyp-final-retina-hierarchical-pipeline(final-version).ipynb
+
+# Project Documentation & Design Files (exclude from repo)
+Web App Work Flow Requirements.docx
+ai_eye_care_system_flow.svg
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+temp/
+tmp/
+
+# Uploads and Generated Files
+backend/uploads/*
+!backend/uploads/.gitkeep
+frontend/dist/
+
+# Dependencies cache
+.cache/
+.npm/
+
+# OS Files
+.DS_Store
+Thumbs.db
+.directory
+
+# Testing
+.coverage
+htmlcov/
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+
+# Virtual Environments
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+$RECYCLE.BIN/
+
+# Local development
+.local/
+local_settings.py
+
+# NOTE: start.bat and start.sh ARE COMMITTED
+# These startup scripts are helpful for users to run the application
+# They are NOT in gitignore so others can easily start the project

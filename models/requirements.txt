@@ -1,0 +1,22 @@
+# AI Eye Care System - ML Server Requirements
+# Run: pip install -r requirements.txt
+# Python 3.8+ required
+
+# Core Deep Learning Framework
+torch>=2.0.0,<3.0.0
+torchvision>=0.15.0,<0.18.0
+
+# Web Framework & Server
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+
+# Image Processing & Computer Vision
+Pillow>=9.5.0
+opencv-python>=4.7.0
+numpy>=1.24.0,<2.0.0
+
+# Interpretability & Visualization (optional for heatmaps)
+# The distribution is named grad-cam; it provides the pytorch_grad_cam module.
+grad-cam>=1.4.8

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  ml-server:
+    build:
+      context: ./models
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5001:7860"
+    environment:
+      - PORT=7860
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongodb:27017/ai_eye_care
+      - ML_SERVER_URL=http://ml-server:7860
+      - JWT_SECRET=ai_eye_care_super_secret_jwt_key_2026
+      - CORS_ORIGIN=*
+    depends_on:
+      - mongodb
+      - ml-server
+    volumes:
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  backend_uploads:

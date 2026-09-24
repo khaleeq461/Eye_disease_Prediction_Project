@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 min-h-screen;
+  }
+
+  /* High-contrast defaults for explicit light containers */
+  .bg-white, .bg-gray-50, .bg-gray-100, .bg-blue-50, .bg-green-50, .bg-yellow-50, .bg-red-50, .bg-purple-50 {
+    color: #0f172a;
+  }
+
+  /* Default input, select, textarea styling */
+  input, select, textarea {
+    color: inherit;
+  }
+
+  /* Ensure inputs with dark backgrounds have crisp, high-contrast readable text */
+  input.input-dark,
+  textarea.input-dark,
+  select.input-dark,
+  .bg-slate-900 input,
+  .bg-slate-900 textarea,
+  .bg-slate-900 select,
+  .bg-slate-950 input,
+  .bg-slate-950 textarea,
+  .bg-slate-950 select,
+  .glass-card input,
+  .glass-card textarea,
+  .glass-card select {
+    color: #f8fafc !important;
+  }
+
+  /* Disabled inputs on dark background */
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    color: #cbd5e1 !important;
+    -webkit-text-fill-color: #cbd5e1 !important;
+    opacity: 1 !important;
+  }
+
+  /* Custom Sleek Dark-Mode Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #020617;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 9999px;
+    border: 2px solid #020617;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #06b6d4;
+  }
+}
+
+@layer components {
+  /* Medical Glassmorphism Cards */
+  .glass-card {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-xl shadow-black/40;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:border-cyan-500/40 hover:shadow-cyan-950/30 hover:-translate-y-0.5 transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-slate-900/60 backdrop-blur-md border border-slate-800/60 rounded-xl;
+  }
+
+  /* Glow Utilities */
+  .glow-cyan {
+    box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.4);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.4);
+  }
+
+  /* Gradient Badges & Buttons */
+  .btn-gradient-cyan {
+    @apply px-5 py-2.5 bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+  }
+
+  .btn-gradient-primary {
+    @apply px-5 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+  }
+
+  .btn-ghost-dark {
+    @apply px-4 py-2.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+  }
+
+  .input-dark {
+    @apply w-full px-4 py-3 bg-slate-900 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm;
+  }
+}
+
+@layer utilities {
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .text-gradient-cyan {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400;
+  }
+
+  .text-gradient-blue {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-300;
+  }
+}
