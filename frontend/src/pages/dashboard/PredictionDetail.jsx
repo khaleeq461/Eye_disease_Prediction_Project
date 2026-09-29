@@ -114,7 +114,8 @@ const PredictionDetail = () => {
     diabetes: 'Diabetic Retinopathy',
     glaucoma: 'Glaucoma',
     cataract: 'Cataract',
-    myopia: 'Myopia (Near-sightedness)'
+    myopia: 'Myopia (Near-sightedness)',
+    unclassified_pathology: 'Atypical / Non-Target Retinal Pathology'
   };
 
   const diseaseColors = {
@@ -122,7 +123,8 @@ const PredictionDetail = () => {
     diabetes: 'text-red-600 bg-red-50',
     glaucoma: 'text-orange-600 bg-orange-50',
     cataract: 'text-purple-600 bg-purple-50',
-    myopia: 'text-blue-600 bg-blue-50'
+    myopia: 'text-blue-600 bg-blue-50',
+    unclassified_pathology: 'text-amber-600 bg-amber-50'
   };
 
   if (loading) {

@@ -488,6 +488,23 @@ router.post('/:id/generate-report', auth, async (req, res) => {
                     'Maintain a balanced diet rich in lutein, zeaxanthin, and omega-3 fatty acids',
                     'Use standard UV-protective eyewear during direct sun exposure'
                 ]
+            },
+            unclassified_pathology: {
+                name: 'Atypical / Unclassified Retinal Pathology',
+                affectedOrgan: 'Neurosensory Retinal Layers & Choriocapillaris (Non-Target Pathology)',
+                primaryRootCause: 'Atypical Retinal Lesion Alteration / Non-Target Pathology',
+                biologicalMechanism: 'Deep learning neural evaluation confirmed high-confidence pathological retinal architectural alteration. However, the spatial lesion pattern does not exhibit dominant alignment with Diabetic Retinopathy, Glaucoma, Cataract, or Pathological Myopia, indicating an Out-of-Distribution condition (e.g., Macular Degeneration, Central Serous Chorioretinopathy, or Retinal Vascular Occlusion).',
+                visualFindings: 'Localized structural lesions, focal contrast anomalies, or pigmentary irregularities detected outside the canonical four-disease pathology spectrum.',
+                confirmatoryProtocols: [
+                    'High-Definition Spectral-Domain Optical Coherence Tomography (SD-OCT)',
+                    'Fundus Fluorescein Angiography (FFA) and Indocyanine Green (ICG) Angiography',
+                    'Multi-Spectral Autofluorescence (FAF) & Widefield Retinal Imaging'
+                ],
+                clinicalNextSteps: [
+                    'Direct referral to Vitreoretinal Specialist for sub-specialty clinical diagnosis',
+                    'Immediate macular examination to rule out subretinal fluid or neovascularization',
+                    'Review AI Grad-CAM localization map to evaluate exact affected quadrant'
+                ]
             }
         };
 

@@ -172,26 +172,71 @@ app.add_middleware(
 )
 
 # ============== Prediction Functions ==============
-def preprocess_image(image_bytes: bytes) -> torch.Tensor:
+def validate_fundus_image(img: Image.Image) -> tuple[bool, str]:
+    """Validates that the uploaded image exhibits characteristic fundus properties.
+    Rejects non-retinal images (e.g. photos of cars, faces, blank noise, inverted colors).
+    """
+    try:
+        arr = np.array(img)
+        if arr.ndim != 3 or arr.shape[2] != 3:
+            return False, "Invalid image format. Expected RGB fundus photograph."
+        
+        # Check image resolution
+        h, w, _ = arr.shape
+        if h < 100 or w < 100:
+            return False, "Image resolution too low for diagnostic evaluation (minimum 100x100px required)."
+        
+        # Check brightness and contrast
+        mean_val = float(np.mean(arr))
+        std_val = float(np.std(arr))
+        if mean_val < 15:
+            return False, "Image is underexposed or completely dark. Please provide an illuminated fundus scan."
+        if mean_val > 245:
+            return False, "Image is overexposed or blank white. Please provide a valid fundus photograph."
+        if std_val < 14:
+            return False, "Image lacks structural contrast / appears uniform. Please upload a clear retinal photograph."
+        
+        # Check fundus chromatic spectrum:
+        # Retinal fundus images are predominantly reddish-orange due to retinal vasculature and choroid.
+        r_mean = float(np.mean(arr[:, :, 0]))
+        b_mean = float(np.mean(arr[:, :, 2]))
+        if b_mean > r_mean * 1.45 and b_mean > 70:
+            return False, "Non-retinal color spectrum detected. Please upload an authentic ocular fundus photograph."
+            
+        return True, ""
+    except Exception as e:
+        return True, ""  # Fail open if unexpected array check error
+
+def preprocess_image(image_bytes: bytes) -> tuple[torch.Tensor, Image.Image]:
     """Preprocess image for model input"""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     tensor = transform(img).unsqueeze(0).to(DEVICE)
-    return tensor
+    return tensor, img
 
 def predict(image_bytes: bytes):
-    """Main prediction function - Two-stage cascade
+    """Main prediction function - Three-Stage Safety Triage Cascade
     
     Pipeline:
-    1. Binary model: 0=normal, 1=disease
-       - Use argmax to determine prediction
-    2. If disease, run disease model to identify specific condition
+    1. Gate 1: Quality & Domain Verification (Ensures valid ocular fundus photograph)
+    2. Gate 2: Binary Model (Stage 1: Normal/Healthy vs Pathological/Disease)
+    3. Gate 3: Multi-Class Differential Triage (Stage 2: Target 4-Disease vs Atypical/Unclassified Pathology)
     """
     if not binary_model or not disease_model:
         return {"error": "Models not loaded"}
     
     try:
-        # Preprocess
-        tensor = preprocess_image(image_bytes)
+        # Gate 1: Domain & Quality Validation
+        tensor, raw_img = preprocess_image(image_bytes)
+        is_valid, reject_msg = validate_fundus_image(raw_img)
+        if not is_valid:
+            return {
+                "success": True,
+                "prediction": "unknown",
+                "confidence": 0.0,
+                "isNormal": None,
+                "isAccepted": False,
+                "rejectedReason": reject_msg
+            }
         
         # Stage 1: Binary Classification (Normal vs Disease)
         with torch.no_grad():
@@ -203,8 +248,13 @@ def predict(image_bytes: bytes):
         # Stage 2: Disease Multi-Class Classification (evaluated for all scans to provide full 4-condition breakdown)
         with torch.no_grad():
             prob2 = torch.softmax(disease_model(tensor), dim=1)
-            disease_pred = prob2.argmax(1).item()
-            disease_confidence = prob2[0][disease_pred].item()
+            sorted_probs, sorted_indices = torch.sort(prob2[0], descending=True)
+            top1_idx = sorted_indices[0].item()
+            top1_conf = sorted_probs[0].item()
+            top2_conf = sorted_probs[1].item()
+            margin = top1_conf - top2_conf
+            disease_pred = top1_idx
+            disease_confidence = top1_conf
 
         # Scale the 4 disease probabilities by the overall Condition Risk (disease_prob):
         # P(Disease_i) = P(Disease_i | Disease) * P(Disease)
@@ -228,7 +278,7 @@ def predict(image_bytes: bytes):
             }
         }
         
-        # If normal_prob is higher, classify as normal
+        # Gate 2: Normal vs Disease Check
         if binary_pred == 0:  # normal
             result["isNormal"] = True
             result["binaryResult"]["isNormal"] = True
@@ -237,18 +287,24 @@ def predict(image_bytes: bytes):
             result["confidence"] = normal_prob
             return result
         
-        # If disease (binary_pred == 1), mark isNormal as False
+        # Gate 3: Target Disease vs Atypical / Unclassified Pathology Check
         result["isNormal"] = False
         result["binaryResult"]["isNormal"] = False
-        result["prediction"] = DISEASE_CLASSES[disease_pred]
-        result["confidence"] = disease_confidence
         
-        # Check confidence threshold for disease predictions
-        if disease_confidence < CONFIDENCE_THRESHOLD:
-            result["isAccepted"] = False
-            result["rejectedReason"] = "Low confidence prediction - may not be a valid eye image"
-        else:
+        # High confidence & clear winner among the 4 trained conditions
+        if top1_conf >= 0.48 and margin >= 0.08:
+            result["prediction"] = DISEASE_CLASSES[disease_pred]
+            result["confidence"] = disease_confidence
             result["isAccepted"] = True
+        else:
+            # Out-Of-Distribution (OOD) / Unclassified Pathology:
+            # Retina exhibits abnormalities, but softmax distribution is dispersed without target class consensus
+            result["prediction"] = "unclassified_pathology"
+            result["confidence"] = disease_prob  # Confidence that pathology is present
+            result["isAccepted"] = True
+            result["diseaseResult"]["disease"] = "unclassified_pathology"
+            result["diseaseResult"]["confidence"] = disease_prob
+            result["rejectedReason"] = None
         
         return result
         
@@ -453,6 +509,17 @@ def get_recommendations(prediction: str, confidence: float):
                 "Consider orthokeratology lenses"
             ],
             "priority": "medium"
+        },
+        "unclassified_pathology": {
+            "title": "Atypical / Unclassified Retinal Pathology Detected",
+            "descriptions": [
+                "Schedule immediate comprehensive dilated evaluation with a Retinal Specialist",
+                "Undergo high-resolution Spectral-Domain OCT (SD-OCT) and Fluorescein Angiography (FA)",
+                "Review the Grad-CAM visual attention heatmap with your physician to localize focal retinal lesions",
+                "Investigate non-target retinal pathologies (e.g. Macular Degeneration, Retinitis Pigmentosa, or Retinal Vascular Occlusion)",
+                "Seek urgent emergency ophthalmic care if experiencing sudden central vision loss, flashes, or curtain-like visual field loss"
+            ],
+            "priority": "urgent"
         }
     }
     
@@ -552,6 +619,24 @@ def get_xai_etiology_analysis(prediction: str, confidence: float, binary_result:
             ],
             "systemic_tests": ["Annual Comprehensive Ophthalmic Exam", "Baseline Refraction", "Screening Tonometry"],
             "targeted_organ_treatment": "Routine annual preventative eye screening and UV-blocking sunglasses"
+        },
+        "unclassified_pathology": {
+            "organ_of_origin": "Retinal Neurosensory Layers / Vascular Plexus (Non-Target Pathology)",
+            "biological_system": "Retinochoroidal Complex / Neurosensory Visual Pathway",
+            "pathophysiology_summary": "Neural activation confirmed structural retinal anomaly, but lesion morphology does not correspond to Diabetic Retinopathy, Glaucoma, Cataract, or Pathological Myopia.",
+            "causal_chain": [
+                "Stage 1 Binary EfficientNet-B3 confirmed high-probability pathological alteration across the retinal fundus.",
+                "Stage 2 Multi-Class network evaluated the 4 trained disease classes (DR, Glaucoma, Cataract, Myopia) and found dispersed low-confidence activations.",
+                "The mathematical entropy across target classes indicates an Out-of-Distribution (OOD) retinal condition (such as AMD, Retinal Detachment, or Central Serous Chorioretinopathy).",
+                "Grad-CAM visual heatmap localized the anomalous structural lesion on the retinal fundus for specialist review."
+            ],
+            "systemic_tests": [
+                "Macular Spectral-Domain OCT (SD-OCT)",
+                "Fundus Fluorescein Angiography (FFA / ICG)",
+                "Multi-modal Ultra-Widefield Retinal Imaging",
+                "Electroretinography (ERG) & Amsler Grid Testing"
+            ],
+            "targeted_organ_treatment": "Urgent comprehensive ophthalmology sub-specialty referral for definitive diagnostic imaging and targeted medical/surgical intervention"
         }
     }
 

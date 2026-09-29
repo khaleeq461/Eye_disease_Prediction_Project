@@ -61,6 +61,13 @@ const diseaseDescriptions = {
     triageLevel: 'Moderate Care',
     triageColor: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
     urgencyText: 'Monitor for peripheral retinal tears and macular chorioretinal thinning.'
+  },
+  unclassified_pathology: {
+    title: 'Atypical / Non-Target Retinal Pathology',
+    summary: 'Neural activations confirmed structural retinal pathology, but pattern does not match Diabetic Retinopathy, Glaucoma, Cataract, or Myopia profiles. Direct ophthalmic triage recommended.',
+    triageLevel: 'Specialist Triage',
+    triageColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    urgencyText: 'Referral for multi-modal imaging (OCT / FFA) to investigate non-target retinal conditions.'
   }
 };
 

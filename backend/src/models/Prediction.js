@@ -15,7 +15,7 @@ const predictionSchema = new mongoose.Schema({
     },
     prediction: {
         type: String,
-        enum: ['normal', 'diabetes', 'glaucoma', 'cataract', 'myopia'],
+        enum: ['normal', 'diabetes', 'glaucoma', 'cataract', 'myopia', 'unclassified_pathology', 'unknown'],
         required: true
     },
     isNormal: {

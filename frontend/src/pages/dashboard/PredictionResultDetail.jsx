@@ -71,6 +71,7 @@ const PredictionResultDetail = () => {
       case 'glaucoma': return 'text-purple-600 bg-purple-50';
       case 'cataract': return 'text-blue-600 bg-blue-50';
       case 'myopia': return 'text-yellow-600 bg-yellow-50';
+      case 'unclassified_pathology': return 'text-amber-600 bg-amber-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -174,7 +175,11 @@ const PredictionResultDetail = () => {
                 <div>
                   <p className="text-xs opacity-75 font-semibold">Predicted Pathology</p>
                   <p className="text-2xl font-extrabold capitalize">
-                    {prediction.prediction === 'normal' ? 'Healthy Eyes' : prediction.prediction}
+                    {prediction.prediction === 'normal' 
+                      ? 'Healthy Eyes' 
+                      : (prediction.prediction === 'unclassified_pathology' 
+                          ? 'Atypical / Non-Target Pathology' 
+                          : prediction.prediction)}
                   </p>
                 </div>
                 <div className="text-right">
