@@ -183,25 +183,18 @@ def validate_fundus_image(img: Image.Image) -> tuple[bool, str]:
         
         # Check image resolution
         h, w, _ = arr.shape
-        if h < 100 or w < 100:
-            return False, "Image resolution too low for diagnostic evaluation (minimum 100x100px required)."
+        if h < 64 or w < 64:
+            return False, "Image resolution too low for diagnostic evaluation (minimum 64x64px required)."
         
-        # Check brightness and contrast
+        # Check brightness and contrast (reject completely blank, pitch black, or solid color images)
         mean_val = float(np.mean(arr))
         std_val = float(np.std(arr))
-        if mean_val < 15:
-            return False, "Image is underexposed or completely dark. Please provide an illuminated fundus scan."
-        if mean_val > 245:
-            return False, "Image is overexposed or blank white. Please provide a valid fundus photograph."
-        if std_val < 14:
-            return False, "Image lacks structural contrast / appears uniform. Please upload a clear retinal photograph."
-        
-        # Check fundus chromatic spectrum:
-        # Retinal fundus images are predominantly reddish-orange due to retinal vasculature and choroid.
-        r_mean = float(np.mean(arr[:, :, 0]))
-        b_mean = float(np.mean(arr[:, :, 2]))
-        if b_mean > r_mean * 1.45 and b_mean > 70:
-            return False, "Non-retinal color spectrum detected. Please upload an authentic ocular fundus photograph."
+        if mean_val < 5:
+            return False, "Image is underexposed or completely black. Please provide an illuminated fundus scan."
+        if mean_val > 250:
+            return False, "Image is overexposed or completely white. Please provide a valid fundus photograph."
+        if std_val < 6:
+            return False, "Image lacks structural contrast (appears blank). Please upload a valid ocular fundus photograph."
             
         return True, ""
     except Exception as e:
